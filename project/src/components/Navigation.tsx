@@ -6,13 +6,19 @@ interface NavigationProps {
   setActiveView: (view: string) => void;
   userRole: 'company' | 'hacker';
   setUserRole: (role: 'company' | 'hacker') => void;
+  isAuthenticated: boolean;
+  user: { username: string; role: 'company' | 'hacker' } | null;
+  onLogout: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
   activeView,
   setActiveView,
   userRole,
-  setUserRole
+  setUserRole,
+  isAuthenticated,
+  user,
+  onLogout
 }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
@@ -73,21 +79,47 @@ export const Navigation: React.FC<NavigationProps> = ({
 
           {/* Right side actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setUserRole(userRole === 'company' ? 'hacker' : 'company')}
-                className="px-3 py-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
-              >
-                Switch to {userRole === 'company' ? 'Hacker' : 'Company'}
-              </button>
-              <button className="p-2 text-gray-400 hover:text-gray-500 relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </button>
-              <button className="p-2 text-gray-400 hover:text-gray-500">
-                <User className="w-5 h-5" />
-              </button>
-            </div>
+            {!isAuthenticated ? (
+              <>
+                <button
+                  onClick={() => setActiveView('login')}
+                  className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => setActiveView('register')}
+                  className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  Register
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="text-gray-700 font-medium mr-4">
+                  Hello, {user?.username}
+                </span>
+                <button
+                  onClick={onLogout}
+                  className="px-3 py-1 bg-red-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  Logout
+                </button>
+                <button
+                  onClick={() => setUserRole(userRole === 'company' ? 'hacker' : 'company')}
+                  className="px-3 py-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  Switch to {userRole === 'company' ? 'Hacker' : 'Company'}
+                </button>
+                <button className="p-2 text-gray-400 hover:text-gray-500 relative">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                </button>
+                <button className="p-2 text-gray-400 hover:text-gray-500">
+                  <User className="w-5 h-5" />
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -127,12 +159,40 @@ export const Navigation: React.FC<NavigationProps> = ({
               );
             })}
             <div className="pt-4 border-t border-gray-200">
-              <button
-                onClick={() => setUserRole(userRole === 'company' ? 'hacker' : 'company')}
-                className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md text-base font-medium"
-              >
-                Switch to {userRole === 'company' ? 'Hacker' : 'Company'}
-              </button>
+              {!isAuthenticated ? (
+                <>
+                  <button
+                    onClick={() => setActiveView('login')}
+                    className="w-full px-3 py-2 bg-purple-600 text-white rounded-md text-base font-medium"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => setActiveView('register')}
+                    className="w-full mt-1 px-3 py-2 bg-purple-600 text-white rounded-md text-base font-medium"
+                  >
+                    Register
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="block px-3 py-2 text-gray-700 font-medium">
+                    Hello, {user?.username}
+                  </span>
+                  <button
+                    onClick={onLogout}
+                    className="w-full mt-1 px-3 py-2 bg-red-600 text-white rounded-md text-base font-medium"
+                  >
+                    Logout
+                  </button>
+                  <button
+                    onClick={() => setUserRole(userRole === 'company' ? 'hacker' : 'company')}
+                    className="w-full mt-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md text-base font-medium"
+                  >
+                    Switch to {userRole === 'company' ? 'Hacker' : 'Company'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
