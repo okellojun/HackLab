@@ -26,6 +26,26 @@ function App() {
     setActiveView('dashboard');
   };
 
+  const handleLoginWithGitHub = () => {
+    // Mock GitHub login
+    const username = 'githubUser';
+    const role = 'hacker';
+    setUser({ username, role });
+    setUserRole(role);
+    setIsAuthenticated(true);
+    setActiveView('dashboard');
+  };
+
+  const handleLoginWithGoogle = () => {
+    // Mock Google login
+    const username = 'googleUser';
+    const role = 'company';
+    setUser({ username, role });
+    setUserRole(role);
+    setIsAuthenticated(true);
+    setActiveView('dashboard');
+  };
+
   const handleRegister = (username: string, password: string) => {
     // Mock register logic: simply log in after registration
     setUser({ username, role: 'hacker' }); // default to hacker role on register
@@ -61,7 +81,12 @@ function App() {
 
   if (!isAuthenticated) {
     return authView === 'login' ? (
-      <Login onLogin={handleLogin} switchToRegister={() => setAuthView('register')} />
+      <Login
+        onLogin={handleLogin}
+        switchToRegister={() => setAuthView('register')}
+        onLoginWithGitHub={handleLoginWithGitHub}
+        onLoginWithGoogle={handleLoginWithGoogle}
+      />
     ) : (
       <Register onRegister={handleRegister} switchToLogin={() => setAuthView('login')} />
     );
