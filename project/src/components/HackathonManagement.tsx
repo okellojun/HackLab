@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Trophy, Plus, Edit, Eye, Clock, MapPin } from 'lucide-react';
 
 interface Hackathon {
@@ -21,45 +21,32 @@ interface HackathonManagementProps {
 
 export const HackathonManagement: React.FC<HackathonManagementProps> = ({ userRole }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [hackathons] = useState<Hackathon[]>([
-    {
-      id: '1',
-      title: 'AI Innovation Challenge',
-      description: 'Build innovative AI solutions for real-world problems. Focus on practical applications that can make a difference.',
-      startDate: '2025-02-01',
-      endDate: '2025-02-03',
-      type: 'Virtual',
-      participants: 245,
-      maxParticipants: 500,
-      prize: 10000,
-      status: 'Upcoming'
-    },
-    {
-      id: '2',
-      title: 'Blockchain Solutions Summit',
-      description: 'Develop cutting-edge blockchain applications and smart contracts. Showcase your skills in decentralized technologies.',
-      startDate: '2025-02-10',
-      endDate: '2025-02-12',
-      type: 'Hybrid',
-      participants: 156,
-      maxParticipants: 300,
-      prize: 5000,
-      status: 'Upcoming',
-      location: 'San Francisco, CA'
-    },
-    {
-      id: '3',
-      title: 'Mobile Innovation Week',
-      description: 'Create next-generation mobile applications with focus on user experience and performance optimization.',
-      startDate: '2025-01-15',
-      endDate: '2025-01-17',
-      type: 'Virtual',
-      participants: 189,
-      maxParticipants: 400,
-      prize: 7500,
-      status: 'Completed'
-    }
-  ]);
+  const [hackathons, setHackathons] = useState<Hackathon[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHackathons = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:4000/hackathons', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch hackathons data');
+        }
+        const data = await response.json();
+        setHackathons(data);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message || 'Unknown error');
+        setLoading(false);
+      }
+    };
+    fetchHackathons();
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -78,6 +65,14 @@ export const HackathonManagement: React.FC<HackathonManagementProps> = ({ userRo
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading hackathons...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-red-600">Error: {error}</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

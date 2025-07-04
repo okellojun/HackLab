@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, DollarSign, Clock, Users, Star, Code, Trophy } from 'lucide-react';
 
 interface Problem {
@@ -19,87 +19,32 @@ export const HackerBrowse: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
+  const [problems, setProblems] = useState<Problem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const problems: Problem[] = [
-    {
-      id: '1',
-      title: 'API Rate Limiting Implementation',
-      description: 'Need to implement efficient rate limiting for our REST API to prevent abuse while maintaining performance. The solution should handle burst traffic and provide clear error messages.',
-      category: 'Backend',
-      difficulty: 'Medium',
-      bounty: 1500,
-      deadline: '2025-02-15',
-      company: 'TechCorp',
-      submissions: 12,
-      skills: ['Node.js', 'Redis', 'API Design'],
-      rating: 4.8
-    },
-    {
-      id: '2',
-      title: 'Real-time Data Visualization Dashboard',
-      description: 'Create an interactive dashboard for visualizing real-time analytics data with custom filtering options, responsive design, and export capabilities.',
-      category: 'Frontend',
-      difficulty: 'Hard',
-      bounty: 2500,
-      deadline: '2025-02-20',
-      company: 'DataFlow Inc',
-      submissions: 8,
-      skills: ['React', 'D3.js', 'WebSocket'],
-      rating: 4.9
-    },
-    {
-      id: '3',
-      title: 'Mobile App Performance Optimization',
-      description: 'Optimize our React Native app to reduce startup time and improve overall performance metrics. Focus on memory management and rendering efficiency.',
-      category: 'Mobile',
-      difficulty: 'Medium',
-      bounty: 2000,
-      deadline: '2025-02-10',
-      company: 'MobileFirst',
-      submissions: 15,
-      skills: ['React Native', 'Performance', 'iOS/Android'],
-      rating: 4.7
-    },
-    {
-      id: '4',
-      title: 'Machine Learning Model Deployment',
-      description: 'Deploy a trained ML model to production with proper scaling, monitoring, and A/B testing capabilities. Experience with cloud platforms required.',
-      category: 'AI/ML',
-      difficulty: 'Hard',
-      bounty: 3000,
-      deadline: '2025-02-25',
-      company: 'AI Solutions',
-      submissions: 5,
-      skills: ['Python', 'TensorFlow', 'AWS/GCP'],
-      rating: 4.6
-    },
-    {
-      id: '5',
-      title: 'Cybersecurity Vulnerability Assessment',
-      description: 'Conduct a comprehensive security audit of our web application and provide detailed recommendations for improving security posture.',
-      category: 'Cybersecurity',
-      difficulty: 'Hard',
-      bounty: 2800,
-      deadline: '2025-02-18',
-      company: 'SecureWeb',
-      submissions: 3,
-      skills: ['Security Audit', 'Penetration Testing', 'OWASP'],
-      rating: 4.9
-    },
-    {
-      id: '6',
-      title: 'Database Query Optimization',
-      description: 'Optimize slow-running database queries and improve overall database performance. Focus on indexing strategies and query restructuring.',
-      category: 'Database',
-      difficulty: 'Medium',
-      bounty: 1800,
-      deadline: '2025-02-12',
-      company: 'DataBase Pro',
-      submissions: 9,
-      skills: ['SQL', 'PostgreSQL', 'Query Optimization'],
-      rating: 4.5
-    }
-  ];
+  useEffect(() => {
+    const fetchProblems = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:4000/problems', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch problems data');
+        }
+        const data = await response.json();
+        setProblems(data);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message || 'Unknown error');
+        setLoading(false);
+      }
+    };
+    fetchProblems();
+  }, []);
 
   const categories = ['All', 'Frontend', 'Backend', 'Mobile', 'AI/ML', 'Cybersecurity', 'Database'];
   const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
@@ -122,6 +67,14 @@ export const HackerBrowse: React.FC = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading problems...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-red-600">Error: {error}</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

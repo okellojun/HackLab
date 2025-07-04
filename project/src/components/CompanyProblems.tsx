@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, DollarSign, Clock, Users, Tag } from 'lucide-react';
 
 interface Problem {
@@ -15,41 +15,32 @@ interface Problem {
 
 export const CompanyProblems: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [problems] = useState<Problem[]>([
-    {
-      id: '1',
-      title: 'API Rate Limiting Implementation',
-      description: 'Need to implement efficient rate limiting for our REST API to prevent abuse while maintaining performance.',
-      category: 'Backend',
-      difficulty: 'Medium',
-      bounty: 1500,
-      deadline: '2025-02-15',
-      submissions: 12,
-      status: 'Active'
-    },
-    {
-      id: '2',
-      title: 'Real-time Data Visualization',
-      description: 'Create an interactive dashboard for visualizing real-time analytics data with custom filtering options.',
-      category: 'Frontend',
-      difficulty: 'Hard',
-      bounty: 2500,
-      deadline: '2025-02-20',
-      submissions: 8,
-      status: 'Active'
-    },
-    {
-      id: '3',
-      title: 'Mobile App Performance Optimization',
-      description: 'Optimize our React Native app to reduce startup time and improve overall performance metrics.',
-      category: 'Mobile',
-      difficulty: 'Medium',
-      bounty: 2000,
-      deadline: '2025-02-10',
-      submissions: 15,
-      status: 'Active'
-    }
-  ]);
+  const [problems, setProblems] = useState<Problem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProblems = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:4000/problems', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch problems data');
+        }
+        const data = await response.json();
+        setProblems(data);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message || 'Unknown error');
+        setLoading(false);
+      }
+    };
+    fetchProblems();
+  }, []);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -68,6 +59,14 @@ export const CompanyProblems: React.FC = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading problems...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-red-600">Error: {error}</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -189,22 +188,21 @@ export const CompanyProblems: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Bounty Amount ($)</label>
-                    <input
-                      type="number"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="1000"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Deadline</label>
-                    <input
-                      type="date"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Bounty Amount ($)</label>
+                  <input
+                    type="number"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="1000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Deadline</label>
+                  <input
+                    type="date"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
                 </div>
 
                 <div>

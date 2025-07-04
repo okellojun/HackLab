@@ -16,14 +16,28 @@ function App() {
   const [user, setUser] = useState<{ username: string; role: 'company' | 'hacker' } | null>(null);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
-  const handleLogin = (username: string, password: string) => {
-    // Mock login logic: accept any username/password
-    // Assign role based on username for demo purposes
-    const role = username.toLowerCase().includes('company') ? 'company' : 'hacker';
-    setUser({ username, role });
-    setUserRole(role);
-    setIsAuthenticated(true);
-    setActiveView('dashboard');
+  const API_BASE_URL = 'http://localhost:4000';
+
+  const handleLogin = async (username: string, password: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!response.ok) {
+        alert('Login failed: ' + (await response.json()).message);
+        return;
+      }
+      const data = await response.json();
+      setUser(data.user);
+      setUserRole(data.user.role);
+      setIsAuthenticated(true);
+      setActiveView('dashboard');
+      localStorage.setItem('token', data.token);
+    } catch (error) {
+      alert('Login error: ' + error);
+    }
   };
 
   const handleLoginWithGitHub = () => {
@@ -46,12 +60,26 @@ function App() {
     setActiveView('dashboard');
   };
 
-  const handleRegister = (username: string, password: string) => {
-    // Mock register logic: simply log in after registration
-    setUser({ username, role: 'hacker' }); // default to hacker role on register
-    setUserRole('hacker');
-    setIsAuthenticated(true);
-    setActiveView('dashboard');
+  const handleRegister = async (username: string, password: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email: username + '@example.com', password, role: 'hacker' }),
+      });
+      if (!response.ok) {
+        alert('Registration failed: ' + (await response.json()).message);
+        return;
+      }
+      const data = await response.json();
+      setUser(data.user);
+      setUserRole(data.user.role);
+      setIsAuthenticated(true);
+      setActiveView('dashboard');
+      localStorage.setItem('token', data.token);
+    } catch (error) {
+      alert('Registration error: ' + error);
+    }
   };
 
   const handleLogout = () => {

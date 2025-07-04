@@ -1,27 +1,82 @@
-import React from 'react';
-import { TrendingUp, Users, DollarSign, Trophy, Target, Calendar, Star, Code } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { TrendingUp, Users, DollarSign, Trophy, Target, Star, Code } from 'lucide-react';
+
+interface Stat {
+  label: string;
+  value: string | number;
+  change: string;
+  icon: React.ComponentType<any> | string;
+  color: string;
+}
+
+interface Activity {
+  action: string;
+  title: string;
+  hacker: string;
+  bounty: string;
+  time: string;
+}
+
+interface Hacker {
+  name: string;
+  solved: number;
+  earnings: string;
+  rating: number;
+}
 
 export const Analytics: React.FC = () => {
-  const stats = [
-    { label: 'Total Problems Posted', value: '47', change: '+12%', icon: Code, color: 'bg-blue-500' },
-    { label: 'Active Hackers', value: '1,247', change: '+8%', icon: Users, color: 'bg-green-500' },
-    { label: 'Hackathons Hosted', value: '15', change: '+25%', icon: Trophy, color: 'bg-purple-500' },
-    { label: 'Total Bounty Paid', value: '$78,450', change: '+18%', icon: DollarSign, color: 'bg-yellow-500' }
-  ];
+  const [stats, setStats] = useState<Stat[]>([]);
+  const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
+  const [topHackers, setTopHackers] = useState<Hacker[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const recentActivity = [
-    { action: 'Problem solved', title: 'API Rate Limiting', hacker: 'Sarah Chen', bounty: '$1,500', time: '2 hours ago' },
-    { action: 'New submission', title: 'Data Visualization', hacker: 'Alex Rodriguez', bounty: '$2,500', time: '4 hours ago' },
-    { action: 'Hackathon winner', title: 'AI Innovation Challenge', hacker: 'Team ByteForce', bounty: '$5,000', time: '1 day ago' },
-    { action: 'Problem posted', title: 'Mobile Optimization', hacker: 'Internal', bounty: '$2,000', time: '2 days ago' }
-  ];
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:4000/analytics', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch analytics data');
+        }
+        const data = await response.json();
 
-  const topHackers = [
-    { name: 'Sarah Chen', solved: 15, earnings: '$8,500', rating: 4.9 },
-    { name: 'Alex Rodriguez', solved: 12, earnings: '$6,200', rating: 4.8 },
-    { name: 'Mike Johnson', solved: 10, earnings: '$5,800', rating: 4.7 },
-    { name: 'Lisa Wang', solved: 8, earnings: '$4,500', rating: 4.6 }
-  ];
+        // Map icon strings to actual components
+        const iconMap: { [key: string]: React.ComponentType<any> } = {
+          Code,
+          Users,
+          Trophy,
+          DollarSign,
+        };
+
+        const statsWithIcons = data.stats.map((stat: any) => ({
+          ...stat,
+          icon: iconMap[stat.icon] || Code,
+        }));
+
+        setStats(statsWithIcons);
+        setRecentActivity(data.recentActivity);
+        setTopHackers(data.topHackers);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message || 'Unknown error');
+        setLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading analytics...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-red-600">Error: {error}</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

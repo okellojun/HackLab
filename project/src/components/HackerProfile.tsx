@@ -1,37 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, Trophy, Code, DollarSign, Calendar, Edit, Github, Linkedin, Globe } from 'lucide-react';
 
-export const HackerProfile: React.FC = () => {
-  const [isEditing, setIsEditing] = useState(false);
+interface Achievement {
+  title: string;
+  date: string;
+  prize: string;
+}
 
-  const profile = {
-    name: 'Alex Rodriguez',
-    title: 'Full Stack Developer',
-    location: 'San Francisco, CA',
-    joinDate: '2024-03-15',
-    avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2',
-    rating: 4.8,
-    problemsSolved: 12,
-    hackathonsWon: 3,
-    totalEarnings: 2340,
-    bio: 'Passionate full-stack developer with 5 years of experience in React, Node.js, and cloud technologies. Love solving complex problems and building scalable applications.',
-    skills: ['React', 'Node.js', 'Python', 'AWS', 'Docker', 'PostgreSQL', 'GraphQL', 'TypeScript'],
-    achievements: [
-      { title: 'AI Innovation Challenge Winner', date: '2024-12-15', prize: '$5,000' },
-      { title: 'Mobile App Excellence Award', date: '2024-11-20', prize: '$2,500' },
-      { title: 'Best API Design', date: '2024-10-10', prize: '$1,500' }
-    ],
-    recentProblems: [
-      { title: 'API Rate Limiting Implementation', status: 'Completed', bounty: '$1,500', company: 'TechCorp' },
-      { title: 'Real-time Chat System', status: 'In Progress', bounty: '$2,000', company: 'MessageFlow' },
-      { title: 'Database Query Optimization', status: 'Completed', bounty: '$1,800', company: 'DataPro' }
-    ],
-    social: {
-      github: 'https://github.com/alexrodriguez',
-      linkedin: 'https://linkedin.com/in/alexrodriguez',
-      website: 'https://alexrodriguez.dev'
-    }
-  };
+interface RecentProblem {
+  title: string;
+  status: string;
+  bounty: string;
+  company: string;
+}
+
+interface SocialLinks {
+  github: string;
+  linkedin: string;
+  website: string;
+}
+
+interface HackerProfileData {
+  name: string;
+  title: string;
+  location: string;
+  joinDate: string;
+  avatar: string;
+  rating: number;
+  problemsSolved: number;
+  hackathonsWon: number;
+  totalEarnings: number;
+  bio: string;
+  skills: string[];
+  achievements: Achievement[];
+  recentProblems: RecentProblem[];
+  social: SocialLinks;
+}
+
+export const HackerProfile: React.FC = () => {
+  const [profile, setProfile] = useState<HackerProfileData | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:4000/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile data');
+        }
+        const data = await response.json();
+        setProfile(data);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message || 'Unknown error');
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading profile...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-red-600">Error: {error}</div>;
+  }
+
+  if (!profile) {
+    return <div className="p-6 text-center">No profile data available.</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -123,8 +168,8 @@ export const HackerProfile: React.FC = () => {
                     <div key={index} className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{problem.title}</h4>
-                          <p className="text-sm text-gray-500">{problem.company}</p>
+                          <h4 className="font-medium text-gray-900 text-sm">{problem.title}</h4>
+                          <p className="text-xs text-gray-500">{problem.company}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-semibold text-green-600">{problem.bounty}</p>
